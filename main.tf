@@ -76,7 +76,15 @@ data "aws_ami" "my_aws_ami" {
         name = "name"
         values = [ "amzn2-ami-kernel-*" ]
     }
-}
+resource "aws_instance" "public_server_a" {
+  ami = data.aws_ami.my_aws_ami.id
+  instance_type = "t2.medium"
+  key_name = "number-ring-key"
+  subnet_id = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.number_ring_sg.id]
+}}
+
+
 #EC2- PRIVATE
 resource "aws_instance" "first_server" {
     ami = data.aws_ami.my_aws_ami.id
