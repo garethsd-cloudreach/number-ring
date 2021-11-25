@@ -49,6 +49,43 @@ resource "aws_subnet" "private" {
         Name = "private"
     }
 }
+#ROUTE TABLES
+resource "aws_route_table" "private_to_public_rt" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.nat.id
+  }
+
+  tags = {
+    Name = "private_to_public"
+  }
+}
+resource "aws_route_table" "igw_route_table" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "igw_route_table"
+  }
+}
+
+#ASSOCIATION TO PRIVATE
+resource "aws_route_table_association" "private" {
+  subnet_id      = aws_subnet.private.id
+  route_table_id = aws_route_table.private_to_public_rt.id
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.igw_route_table.id
+}
+
 #SECURITY GROUP
 resource "aws_security_group" "number_ring_sg" {
   name        = "number_ring_sg"
@@ -67,6 +104,13 @@ resource "aws_security_group" "number_ring_sg" {
   tags = {
       Name = "number_ring_sg"
   }
+ egress {
+  description = "Allow access to the world"
+  from_port = 0
+  to_port = 0
+  protocol = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
+}
 }
 
 data "aws_ami" "my_aws_ami" {
@@ -76,13 +120,15 @@ data "aws_ami" "my_aws_ami" {
         name = "name"
         values = [ "amzn2-ami-kernel-*" ]
     }
+}
+
 resource "aws_instance" "public_server" {
   ami = data.aws_ami.my_aws_ami.id
   instance_type = "t2.medium"
   key_name = "number-ring-key"
   subnet_id = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.number_ring_sg.id]
-}}
+}
 
 
 #EC2- PRIVATE
