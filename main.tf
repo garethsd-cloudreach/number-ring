@@ -133,11 +133,3 @@ resource "aws_instance" "fifth_server" {
         Name = "fifth server"
     }
 }
-
-resource "aws_ec2_transit_gateway_route_table" "tgw_number" {
-  transit_gateway_id = aws_ec2_transit_gateway.tgw_number.id
-}
-resource "aws_ec2_transit_gateway_route_table_association" "rt_attach" {
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.rt_attach.id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_number.id
-}
