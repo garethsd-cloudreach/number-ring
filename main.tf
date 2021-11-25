@@ -76,7 +76,7 @@ data "aws_ami" "my_aws_ami" {
         name = "name"
         values = [ "amzn2-ami-kernel-*" ]
     }
-resource "aws_instance" "public_server_a" {
+resource "aws_instance" "public_server" {
   ami = data.aws_ami.my_aws_ami.id
   instance_type = "t2.medium"
   key_name = "number-ring-key"
