@@ -1,4 +1,4 @@
-#Create VPC
+#CREATE VPC
 resource "aws_vpc" "main_vpc" {
   cidr_block = "192.168.0.0/16"
 
@@ -6,7 +6,7 @@ resource "aws_vpc" "main_vpc" {
       Name = "number-ring"
   }
 }
-#Create IGW
+#CREATE INTERNET GATEWAY
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "igw" {
     Name = "number_ring_igw"
   }
 }
-#Create Public Subnet
+#CREATE PUBLIC SUBNET
 resource "aws_subnet" "public" {
   vpc_id     = aws_vpc.main_vpc.id
   cidr_block = "192.168.11.0/24"
@@ -25,7 +25,7 @@ resource "aws_subnet" "public" {
     Name = "public"
   }
 }
-#Create Elastic IP for NAT
+#CREATE ELASTIC IP FOR NAT
 resource "aws_eip" "nat_eip" {
   vpc      = true
 }
@@ -49,7 +49,7 @@ resource "aws_subnet" "private" {
         Name = "private"
     }
 }
-#ROUTE TABLES
+#ROUTE TABLE FOR NAT GATEWAY
 resource "aws_route_table" "private_to_public_rt" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -62,6 +62,7 @@ resource "aws_route_table" "private_to_public_rt" {
     Name = "private_to_public"
   }
 }
+#ROUTE TABLE TO IGW
 resource "aws_route_table" "igw_route_table" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -80,7 +81,7 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private.id
   route_table_id = aws_route_table.private_to_public_rt.id
 }
-
+#ASSOCIATION TO PUBLIC
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.igw_route_table.id
@@ -98,7 +99,7 @@ resource "aws_security_group" "number_ring_sg" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    cidr_blocks      = ["0.0.0.0/0"] #DON'T LEAVE OPEN
   }
 
   tags = {
@@ -112,7 +113,7 @@ resource "aws_security_group" "number_ring_sg" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 }
-
+#DEFINING AMI FOR INSTANCES
 data "aws_ami" "my_aws_ami" {
     owners = [ "137112412989" ]
     most_recent = true
@@ -121,7 +122,7 @@ data "aws_ami" "my_aws_ami" {
         values = [ "amzn2-ami-kernel-*" ]
     }
 }
-
+#EC2- PUBLIC INSTANCE
 resource "aws_instance" "public_server" {
   ami = data.aws_ami.my_aws_ami.id
   instance_type = "t2.medium"
@@ -131,7 +132,7 @@ resource "aws_instance" "public_server" {
 }
 
 
-#EC2- PRIVATE
+#EC2- PRIVATE INSTANCES
 resource "aws_instance" "first_server" {
     ami = data.aws_ami.my_aws_ami.id
     instance_type = "t2.medium"
